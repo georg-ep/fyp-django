@@ -1,9 +1,7 @@
 import io
 import os
-import google.auth
 import environ
 from datetime import timedelta
-from google.cloud import secretmanager
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import django
 from django.core.mail.backends import smtp
@@ -16,25 +14,8 @@ location = lambda x: os.path.join(os.path.dirname(os.path.realpath(__file__)), x
 env = environ.Env(DEBUG=(bool, False), ALLOWED_HOSTS=(list, ["*"]))
 env.read_env()
 
-try:
-    _, os.environ["GOOGLE_CLOUD_PROJECT"] = google.auth.default()
-    print("Success auth by google", os.environ["GOOGLE_CLOUD_PROJECT"])
-except google.auth.exceptions.DefaultCredentialsError:
-    pass
-
 IS_DEVELOPMENT = bool(int(os.environ.get("IS_DEVELOPMENT", False)))
 print(IS_DEVELOPMENT, "is_development")
-if not IS_DEVELOPMENT:
-    # Pull secrets from Secret Manager
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-
-    client = secretmanager.SecretManagerServiceClient()
-    settings_name = os.environ.get("SETTINGS_NAME", "django-settings")
-    name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
-    payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
-    print(payload, "settings loaded")
-    env.read_env(io.StringIO(payload))
-print(env)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY", 'sdfm-bci^u39bw19op25fv@x)*zh7%!q!(@j3r1jez50--sdtd1w2132')
 
@@ -66,9 +47,8 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'drf_yasg',  # Swagger app
     'hashids',
+    'twitter',
     'core',
-    'mail',
-    'blog'
 ]
 
 CACHES = {
@@ -212,7 +192,7 @@ FRONTEND_VERIFY_EMAIL_URL = FRONTEND_URL + '/verify-email'
 
 TEST_EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 PROJECT_NAME = os.environ.get('PROJECT_NAME', 'Blank')
-DEFAULT_EMAIL_FROM = 'developer@bypixelfield.com'
+DEFAULT_EMAIL_FROM = ''
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = 'apikey'

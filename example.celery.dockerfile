@@ -1,5 +1,5 @@
 FROM python:3.9
-LABEL MAINTAINER="Pixelfield, s.r.o"
+LABEL MAINTAINER="George Patterson"
 
 ENV PYTHONUNBUFFERED 1
 RUN apt-get update && apt-get -y dist-upgrade

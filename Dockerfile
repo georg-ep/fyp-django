@@ -1,5 +1,5 @@
 FROM python:3.9
-LABEL MAINTAINER="Pixelfield, s.r.o"
+LABEL MAINTAINER="George Patterson"
 
 ENV PYTHONUNBUFFERED 1
 
@@ -16,6 +16,7 @@ WORKDIR /app
 COPY ./app /app
 COPY ./scripts /scripts
 RUN mkdir /tmp/runtime-user
+RUN PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
 ENTRYPOINT ["/scripts/server_run.sh"]
 
