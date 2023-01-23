@@ -1,56 +1,14 @@
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.translation import ugettext_lazy as _
 
-from celery import current_app as celery_app
 
-from hashids import Hashids
-
-import settings
-from core import response, exception
-from user.models import User, Address
-
-
-def raise_400(detail):
-    raise ValidationError(code=400, detail=detail)
-
-
-def verify_email(request):
-    token = request.data.get("token")
-
-    if not token:
-        raise exception.get(ValidationError, _("Token not found"))
-
-    hashids = Hashids(
-        salt=settings.EMAIL_HASH_SALT,
-        min_length=settings.EMAIL_HASH_MIN_LEN,
-        alphabet=settings.EMAIL_HASH_ALPHABET,
-    )
-    hash_tuple = hashids.decode(token)
-
-    if len(hash_tuple) < 1:
-        raise exception.get(ValidationError, _("Wrong token"))
-
-    _id = hash_tuple[0]
-    user = User.objects.filter(id=_id).first()
-
-    if not user:
-        raise exception.get(ValidationError, _("User not found"))
-
-    user.is_email_verified = True
-    user.save()
-    return response.ok()
-
-
-def send_verify_email(request):
-    if not request.user.is_authenticated:
-        return response.unauthorized()
-
-    celery_app.send_task("send_verify_email", kwargs={"user_id": request.user.id})
-
-    return response.ok()
+from logs import models as log_models
+from logs import serializers as log_serializers
+from user.models import User
+from datetime import datetime
+from django.db.models import F, Func, Sum
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -59,7 +17,9 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     """
 
     password = serializers.CharField(write_only=True)
-    email = serializers.CharField(write_only=True)
+    username = serializers.CharField(write_only=True)
+    gender = serializers.CharField(write_only=True)
+    dob = serializers.DateField(write_only=True)
 
     access = serializers.SerializerMethodField()
     refresh = serializers.SerializerMethodField()
@@ -84,57 +44,41 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         :param validated_data: dict of user parameters
         :return: created user
         """
-        validated_data["email"] = validated_data["email"].lower()
+        validated_data["username"] = validated_data["username"].lower()
         user = User(**validated_data)
         user.set_password(validated_data["password"])
         try:
             user.save()
         except Exception:
             raise ValidationError(_("Already registered"))
-
-        celery_app.send_task("send_verify_email", kwargs={"user_id": user.id})
         return user
 
     class Meta:
         model = User
         fields = (
-            "email",
+            "username",
             "access",
             "refresh",
             "password",
+            "dob",
+            "gender",
         )
 
 
-class AddressSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        user = self.context.get("request").user
-        address = Address.objects.filter(user=user).first()
-
-        if address:
-            raise exception.get(
-                serializers.ValidationError, _("User already have an address")
-            )
-
-        validated_data.update({"user": user})
-        return super().create(validated_data)
-
-    class Meta:
-        model = Address
-        exclude = ("user",)
-
-
 class UserDetailSerializer(serializers.ModelSerializer):
-    address = AddressSerializer()
+    activities = log_serializers.ActivitySerializer(many=True)
 
     class Meta:
         model = User
-        fields = ("name", "surname", "email", "address", "avatar", "is_email_verified")
+        fields = ("id", "username", "activities", "dob", "gender",)
+
+
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("email", "name", "surname")
+        fields = ("username", "dob", "gender",)
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
@@ -152,7 +96,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         user = self.context.get("request").user
 
         if not user.check_password(old_password):
-            raise_400(_("Invalid old password"))
+            raise ValidationError("Invalid old password")
 
         user.set_password(new_password)
         user.save()
@@ -162,14 +106,3 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         model = User
         fields = ("old_password", "new_password")
 
-
-class LoginSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        attrs["email"] = attrs["email"].lower()
-        return super().validate(attrs)
-
-
-class AvatarSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("avatar",)

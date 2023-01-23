@@ -1,9 +1,6 @@
-import io
 import os
 import environ
 from datetime import timedelta
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import django
 from django.core.mail.backends import smtp
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,13 +12,11 @@ env = environ.Env(DEBUG=(bool, False), ALLOWED_HOSTS=(list, ["*"]))
 env.read_env()
 
 IS_DEVELOPMENT = bool(int(os.environ.get("IS_DEVELOPMENT", False)))
-print(IS_DEVELOPMENT, "is_development")
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY", 'sdfm-bci^u39bw19op25fv@x)*zh7%!q!(@j3r1jez50--sdtd1w2132')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.environ.get("DEBUG", False)))
-print(DEBUG)
 ALLOWED_HOSTS = [
     'localhost',
     'pfld-sandbox-voiuolbq7q-ey.a.run.app'
@@ -41,13 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-
-    # 'cachalot',
     'rest_framework',
+    'logs',
+    'gcp',
     'django_rest_passwordreset',
-    'drf_yasg',  # Swagger app
-    'hashids',
-    'twitter',
+    'drf_yasg',
     'core',
 ]
 
@@ -162,13 +155,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Europe/Prague'
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 AUTH_USER_MODEL = 'user.User'
 # Static files (CSS, JavaScript, Images)

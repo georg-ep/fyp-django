@@ -13,7 +13,8 @@ admin.site.site_title = 'Django default'
 admin.site.site_url = ''
 
 user_patterns = path('api/users/', include('user.urls'))
-twitter_patterns = path('api/twitter/', include('twitter.urls'))
+log_patterns = path('api/logs/', include('logs.urls'))
+gcp_patterns = path('api/gcp/', include('gcp.urls'))
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,12 +24,15 @@ urlpatterns = [
         app_swagger_view(
             urls_patterns=(
                 user_patterns,
+                log_patterns,
+                gcp_patterns,
                 # Add documented patterns here
             ),
             title="User API"
         )
     ),
     user_patterns,
-    twitter_patterns,
+    gcp_patterns,
+    log_patterns,
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

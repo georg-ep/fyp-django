@@ -1,6 +1,4 @@
 #! /bin/sh
-echo $IS_DEVELOPMENT
-printenv
 if [ "$IS_DEVELOPMENT" = "1" ]
 then
     echo "Waiting for postgres..."
@@ -11,7 +9,6 @@ then
 
     echo "PostgreSQL started"
     python /app/manage.py migrate
-    python /app/manage.py collectstatic --no-input --clear
     python /app/manage.py runserver 0.0.0.0:80
 else
     python /app/manage.py migrate
