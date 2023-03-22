@@ -8,7 +8,7 @@ from logs import models as log_models
 from logs import serializers as log_serializers
 from user.models import User
 from datetime import datetime
-from django.db.models import F, Func, Sum
+from django.db.models.functions import Extract
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -66,12 +66,21 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
-    activities = log_serializers.ActivitySerializer(many=True)
+    # daily_activity_completed = serializers.SerializerMethodField()
+    # total_minutes_spent = serializers.SerializerMethodField()
+    total_cycles = serializers.SerializerMethodField()
+
+    def get_total_cycles(self, obj):
+        user = self.context["request"].user
+        return log_models.BreathingCycle.objects.filter(mood_before__user=user).count()
+
+    # def get_total_minutes_spent(self, obj):
+    #     user = self.context["request"].user
+    #     return log_models.BreathingCycle.objects.filter(mood_before__user=user).aggregate(duration__minutes=Extract('duration', 'minutes'))
 
     class Meta:
         model = User
-        fields = ("id", "username", "activities", "dob", "gender",)
-
+        fields = ("id", "username", "dob", "gender", "total_cycles", )
 
 
 
