@@ -44,16 +44,6 @@ INSTALLED_APPS = [
     'core',
 ]
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://redis:6379/1',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
-    }
-}
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -220,32 +210,6 @@ DJANGO_REST_PASSWORDRESET_TOKEN_CONFIG = {
         "max_number": 99999
     }
 }
-
-CELERY_BEAT_SCHEDULE = {
-    # Print text each minute
-    # core.tasks.celery_test_task
-    "beat-health-check-every-minute": {
-        "task": "celery_test_task",
-        "schedule": timedelta(minutes=1)
-    }
-}
-
-# All celery tasks
-CELERY_TASK_ROUTES = {
-    # core.tasks
-    # Celery health check / example task
-    "celery_test_task": {"queue": "main-queue"},
-
-    # mail.tasks
-    # Tasks for sending various emails
-    "send_verify_email": {"queue": "main-queue"},
-    "send_reset_password_email": {"queue": "main-queue"}
-}
-
-REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
-REDIS_SERVER = os.environ.get("REDIS_SERVER")
-REDIS_APP_DB = os.environ.get("REDIS_APP_DB")
-CELERY_BROKER_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_SERVER}/{REDIS_APP_DB}"
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
