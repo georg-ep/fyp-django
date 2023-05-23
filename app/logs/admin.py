@@ -17,18 +17,3 @@ class BreathingExerciseAdmin(admin.ModelAdmin):
 class BreathingCycleAdmin(admin.ModelAdmin):
   list_display = ("breathing_exercise", "created_at",)
   
-
-# @admin.register(models.ActivityLog)
-# class ActivityLog(admin.ModelAdmin):
-#   # list_display = ("",)
-#   pass
-
-# @admin.register(models.Activity)
-# class Activity(admin.ModelAdmin):
-#   # list_display = ("",)
-#   pass
-
-# @admin.register(models.CustomUserActivity)
-# class CustomUserActivity(admin.ModelAdmin):
-#   # list_display = ("",)
-#   pass

@@ -14,7 +14,6 @@ admin.site.site_url = ''
 
 user_patterns = path('api/users/', include('user.urls'))
 log_patterns = path('api/logs/', include('logs.urls'))
-gcp_patterns = path('api/gcp/', include('gcp.urls'))
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,14 +24,12 @@ urlpatterns = [
             urls_patterns=(
                 user_patterns,
                 log_patterns,
-                gcp_patterns,
                 # Add documented patterns here
             ),
             title="User API"
         )
     ),
     user_patterns,
-    gcp_patterns,
     log_patterns,
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
